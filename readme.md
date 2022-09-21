@@ -10,3 +10,4 @@ Minhas considerações:
 - Não está perfeito a nível de pixel
 - Não possui testes unitários
 - Executado em ambiente de desenvolvimento em emulador com API 31.
+- Tentei implementar a Splashscreen API mas estava crashando o app, por isso optei pela SplashscreenActivity
