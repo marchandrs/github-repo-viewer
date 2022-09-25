@@ -9,9 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.marchand.githubrepoviewer.adapters.FavoriteReposAdapter
-import com.marchand.githubrepoviewer.daos.RepoDao
 import com.marchand.githubrepoviewer.databinding.FragmentFavoritesBinding
-import com.marchand.githubrepoviewer.db.RepoDatabase
 import kotlinx.coroutines.launch
 
 class FavoriteFragment : Fragment() {
@@ -19,7 +17,6 @@ class FavoriteFragment : Fragment() {
     private var _binding: FragmentFavoritesBinding? = null
     private lateinit var favReposAdapter: FavoriteReposAdapter
     private val favoriteViewModel: FavoriteViewModel by viewModels()
-    private lateinit var repoDao: RepoDao
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -31,20 +28,16 @@ class FavoriteFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFavoritesBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-
-        fetchDatabase()
-        setupObservers()
-        setupRecyclerView()
-        return root
+        return binding.root
     }
 
-    private fun fetchDatabase() {
-        repoDao = RepoDatabase.getInstance(requireContext()).repoDao
-        lifecycleScope.launch {
-            favoriteViewModel.favReposList.postValue(repoDao.getRepos())
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        lifecycleScope.launch{
+            favoriteViewModel.loadFavRepos()
         }
-
+        setupObservers()
+        setupRecyclerView()
     }
 
     private fun setupRecyclerView() {
@@ -54,11 +47,14 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        favoriteViewModel.favReposList.observe(viewLifecycleOwner) {
+        favoriteViewModel.favRepos.observe(viewLifecycleOwner) {
             if (it != null) {
                 favReposAdapter.setFavReposList(it)
                 favReposAdapter.notifyDataSetChanged()
             }
+        }
+        favoriteViewModel.tvFavRepoLabelVisible.observe(viewLifecycleOwner) {
+            binding.tvFavreposLabel1.visibility = if (it) {View.VISIBLE} else {View.GONE}
         }
     }
 

@@ -30,15 +30,13 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-        setupObservers()
-        setupRecyclerView()
-        setupUser("appswefit")
-        return root
+        return binding.root
     }
 
-    private fun setupUser(user: String) {
-        settingsViewModel.user.postValue(user)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupObservers()
+        setupRecyclerView()
     }
 
     private fun setupObservers() {
@@ -50,11 +48,15 @@ class HomeFragment : Fragment() {
             }
         }
 
-        homeViewModel.getLiveDataObserver().observe(viewLifecycleOwner) {
+        homeViewModel.repos.observe(viewLifecycleOwner) {
             if (it != null) {
                 reposAdapter.setReposList(it)
                 reposAdapter.notifyDataSetChanged()
             }
+        }
+
+        homeViewModel.tvReposLabelVisible.observe(viewLifecycleOwner) {
+            binding.tvReposLabel1.visibility = if (it) {View.VISIBLE} else {View.INVISIBLE}
         }
     }
 

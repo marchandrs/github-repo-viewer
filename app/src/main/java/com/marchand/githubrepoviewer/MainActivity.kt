@@ -21,27 +21,22 @@ import com.marchand.githubrepoviewer.ui.settings.SettingsViewModel
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val settingsViewModel: SettingsViewModel by viewModels()
     private val settingsFragment = SettingsFragment()
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val navView: BottomNavigationView = binding.navView
-
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        /*val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home, R.id.navigation_dashboard
-            )
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)*/
-        navView.setupWithNavController(navController)
+        setupBottomNavigationView()
         setupHeader()
+        settingsViewModel.loadUser()
+    }
+
+    private fun setupBottomNavigationView() {
+        val navView: BottomNavigationView = binding.navView
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        navView.setupWithNavController(navController)
     }
 
     private fun setupHeader() {

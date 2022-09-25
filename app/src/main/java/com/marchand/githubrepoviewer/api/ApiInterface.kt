@@ -7,7 +7,10 @@ import retrofit2.http.Path
 
 interface ApiInterface {
 
+    /*@GET("users/{user}/repos")
+    fun getData(@Path("user") user: String): Call<ReposData>*/
+
     @GET("users/{user}/repos")
-    fun getData(@Path("user") user: String): Call<ReposData>
+    suspend fun getRepos(@Path("user") user: String): ReposData
 
 }

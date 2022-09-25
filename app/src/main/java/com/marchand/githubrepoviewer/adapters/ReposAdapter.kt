@@ -13,10 +13,9 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.marchand.githubrepoviewer.R
-import com.marchand.githubrepoviewer.daos.RepoDao
-import com.marchand.githubrepoviewer.db.RepoDatabase
 import com.marchand.githubrepoviewer.entities.Repo
 import com.marchand.githubrepoviewer.model.ReposDataItem
+import com.marchand.githubrepoviewer.repositories.RepoRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,10 +23,10 @@ import kotlinx.coroutines.launch
 
 class ReposAdapter: RecyclerView.Adapter<ReposAdapter.MyViewHolder>() {
 
-    private var reposList: List<ReposDataItem>? = null
-    private lateinit var repoDao: RepoDao
+    private var reposList: MutableList<ReposDataItem>? = null
+    private lateinit var repoRepository: RepoRepository
 
-    fun setReposList(reposList: List<ReposDataItem>?) {
+    fun setReposList(reposList: MutableList<ReposDataItem>?) {
         this.reposList = reposList
     }
 
@@ -35,7 +34,7 @@ class ReposAdapter: RecyclerView.Adapter<ReposAdapter.MyViewHolder>() {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.repos_item, parent, false)
 
-        repoDao = RepoDatabase.getInstance(parent.context).repoDao
+        repoRepository = RepoRepository(parent.context)
         return MyViewHolder(view)
     }
 
@@ -44,6 +43,14 @@ class ReposAdapter: RecyclerView.Adapter<ReposAdapter.MyViewHolder>() {
         holder.tvDescription.text = reposList?.get(position)?.description
         holder.tvStars.text = reposList?.get(position)?.stargazers_count.toString()
         holder.tvLanguage.text = reposList?.get(position)?.language
+        holder.imgviewRedDot.visibility = if (
+            (reposList?.get(position)?.language != null) &&
+            (reposList?.get(position)?.language!!.isNotBlank())
+        ) {
+            View.VISIBLE
+        } else {
+            View.INVISIBLE
+        }
         CoroutineScope(Job() + Dispatchers.Main).launch {
             Glide.with(holder.imgAvatar.context)
                 .load(reposList?.get(position)?.owner?.avatar_url)
@@ -57,9 +64,9 @@ class ReposAdapter: RecyclerView.Adapter<ReposAdapter.MyViewHolder>() {
             )
         }
         holder.btnFavoritar.setOnClickListener{
-            CoroutineScope(Job() + Dispatchers.IO).launch {
+            CoroutineScope(Job() + Dispatchers.Main).launch {
                 val repo = reposList?.get(position)!!
-                repoDao.insertRepo(Repo(
+                repoRepository.insertFavRepo(Repo(
                     repo.id,
                     repo.full_name,
                     repo.description?: "",
@@ -68,6 +75,10 @@ class ReposAdapter: RecyclerView.Adapter<ReposAdapter.MyViewHolder>() {
                     repo.language?: "",
                     repo.html_url
                 ))
+
+                /*reposList?.removeAt(position)
+                notifyItemRemoved(position)
+                notifyItemRangeChanged(position, reposList?.size!!)*/
             }
             holder.btnFavoritar.isEnabled = false
             holder.btnFavoritar.setAlpha(0.35f)
@@ -88,5 +99,6 @@ class ReposAdapter: RecyclerView.Adapter<ReposAdapter.MyViewHolder>() {
         val tvStars: TextView = itemView.findViewById(R.id.tv_stars)
         val cardView: CardView = itemView.findViewById(R.id.card_view)
         val btnFavoritar: Button = itemView.findViewById(R.id.btn_favoritar)
+        val imgviewRedDot: ImageView = itemView.findViewById(R.id.imgview_red_dot)
     }
 }
